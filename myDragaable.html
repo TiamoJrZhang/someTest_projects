@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>darggable</title>
+    <style>
+    .target {
+        width: 200px;
+        height: 200px;
+        border: 1px solid #111;
+        border-radius: 10px;
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
+        margin-left: 10px;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="target0" class="target" ondrop="drop(event)" ondragover="allowDrop(event)">
+        <img src="1087103.jpg" draggable="true" ondragstart="drag(event)" alt="loading.." width="150" height="100">
+        <img src="20120905174148_GSK5r.jpeg" draggable="true" ondragstart="drag(event)" alt="loading.." width="150" height="100">
+    </div>
+    <div id="target1" class="target" ondrop="drop(event)" ondragover="allowDrop(event)">
+    </div>
+    <script type="text/javascript">
+    var dragTarget, dragTargetParent;
+
+    function drag(eve) {
+        dragTarget = eve.target;
+        dragTargetParent = dragTarget.parentNode;
+    };
+
+    function allowDrop(eve) {
+        eve.preventDefault();
+    };
+
+    function drop(eve) {
+        eve.preventDefault();
+        var target = eve.target;
+        if (target.id == 'target0' || target.id == 'target1') {
+            target.appendChild(dragTarget);
+        } else {
+            var parentEle = target.parentNode;
+            parentEle.replaceChild(dragTarget, eve.target);
+            dragTargetParent.appendChild(eve.target);
+        }
+    };
+    </script>
+</body>
+
+</html>
