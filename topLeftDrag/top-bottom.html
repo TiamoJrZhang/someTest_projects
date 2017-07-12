@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+    <title>上下分屏</title>
+    <style type="text/css">
+    body {
+        /*font: 14px/1.5 Arial;
+            color: #666;*/
+    }
+    
+    #box {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        border: 2px solid #000;
+        margin: 10px auto;
+    }
+    
+    #box div {
+        position: absolute;
+        width: 100%;
+    }
+    
+    #top,
+    #bottom {
+        height: 50%;
+        overflow: auto;
+    }
+    
+    #bottom {
+        top: 50%;
+    }
+    
+    #line {
+        top: 50%;
+        height: 4px;
+        /*overflow: hidden;*/
+        /*margin-top: -2px;*/
+        background: #CCCCCC;
+        /*text-align: center;*/
+        border-style: solid;
+        border-width: 1px;
+        cursor: n-resize;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="box" style="">
+        <div id="top" style="">
+            <p>BBBBBBBBBBBB</p>
+            <p>BBBBBBBBBBBB</p>
+            <p>BBBBBBBBBBBB</p>
+            <p>BBBBBBBBBBBB</p>
+            <p>BBBBBBBBBBBB</p>
+        </div>
+        <div id="bottom" style="">
+            <p>CCCCCCCC</p>
+            <p>CCCCCCCC</p>
+            <p>CCCCCCCC</p>
+            <p>CCCCCCCC</p>
+            <p>CCCCCCCC</p>
+        </div>
+        <div id="line"></div>
+    </div>
+</body>
+
+</html>
+<script>
+function draggable() {
+    var box = document.getElementById("box");
+    var top = document.getElementById("top");
+    var bottom = document.getElementById("bottom");
+    var line = document.getElementById("line");
+    var boxBoderHeight = (box.offsetHeight - box.clientHeight) / 2;
+    var dragging = null;
+    line.addEventListener("mousedown", function(e) {
+        var e = window.event || e;
+        console.log(e.clientY);
+        dragging = {
+            mouseY: e.clientY, //有需要左右移动的在此扩展两个属性
+            startY: line.offsetTop
+        };
+        if (line.setCapture) line.setCapture();
+    });
+    line.addEventListener("losecapture", function() {
+        dragging = null;
+    });
+    document.addEventListener("mouseup", function() {
+        dragging = null;
+    }, true);
+    var dragTarget = line.setCapture ? line : document;
+    dragTarget.addEventListener("mousemove", function(e) {
+        if (!dragging) return;
+        if (e.pageY <= box.offsetTop + boxBoderHeight)
+            return;
+        if (e.pageY >= box.offsetTop + box.offsetHeight - line.offsetHeight + boxBoderHeight)
+            return;
+        var e = window.event || e;
+        var lineTop = dragging.startY + (e.clientY - dragging.mouseY);
+        // var disY = (e || event).clientY;
+        // var iT = line.offsetTop + ((e || event).clientY - disY);
+        var maxT = box.clientHeight - line.offsetHeight;
+        line.style.margin = 0;
+        iT < 0 && (iT = 0);
+        iT > maxT && (iT = maxT);
+        line.style.top = lineTop + "px";
+        bottom.style.height = box.offsetHeight - line.offsetHeight - line.offsetTop + "px";
+        bottom.style.top = lineTop + line.offsetHeight + "px";
+        top.style.height = line.offsetTop + "px";
+    }, true);
+};
+window.onload = function() {
+    draggable();
+}
+</script>

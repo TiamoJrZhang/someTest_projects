@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+    <title>左右分屏</title>
+    <style type="text/css">
+    body {
+        /*font: 14px/1.5 Arial;
+            color: #666;*/
+    }
+
+    p {
+        color: #ccc;
+    }
+    
+    #box {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        border: 1px solid #000;
+        margin: 10px auto;
+    }
+    
+    #left {
+        width: 49.5%;
+        height: 500px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: #111;
+        overflow: auto;
+    }
+    
+    #right {
+        width: 49.5%;
+        height: 500px;
+        position: absolute;
+        top: 0;
+        right: 0;
+        background: #333;
+        overflow: auto;
+    }
+
+    #line {
+        width: 1%;
+        height: 500px;
+        position: absolute;
+        top: 0;
+        left: 49.5%;
+        background: blue;
+        cursor: w-resize;
+    }
+    </style>
+</head>
+
+<body>
+    <div id="box" style="">
+        <div id="left" style="">
+            <p>BBBBBBBBBBBB</p>
+            <p>BBBBBBBBBBBB</p>
+            <p>BBBBBBBBBBBB</p>
+            <p>BBBBBBBBBBBB</p>
+            <p>BBBBBBBBBBBB</p>
+        </div>
+        <div id="line"></div>
+        <div id="right" style="">
+            <p>CCCCCCCC</p>
+            <p>CCCCCCCC</p>
+            <p>CCCCCCCC</p>
+            <p>CCCCCCCC</p>
+            <p>CCCCCCCC</p>
+        </div>       
+    </div>
+</body>
+
+</html>
+<script>
+function draggable() {
+    var box = document.getElementById("box");
+    var left = document.getElementById("left");
+    var right = document.getElementById("right");
+    var line = document.getElementById("line");
+    var boxBoderWidth = (box.offsetWidth - box.clientWidth) / 2;
+    var dragging = null;
+    line.addEventListener("mousedown", function(e) {
+        var e = window.event || e;
+        console.log(e.clientY);
+        dragging = {
+            mouseX: e.clientX, //有需要左右移动的在此扩展两个属性
+            startX: line.offsetLeft
+        };
+        if (line.setCapture) line.setCapture();
+    });
+    line.addEventListener("losecapture", function() {
+        dragging = null;
+    });
+    document.addEventListener("mouseup", function() {
+        dragging = null;
+    }, true);
+    var dragTarget = line.setCapture ? line : document;
+    dragTarget.addEventListener("mousemove", function(e) {
+        if (!dragging) return;
+        if (e.pageX <= box.offsetLeft + boxBoderWidth)
+            return;
+        if (e.pageX >= box.offsetLeft + box.offsetWidth - line.offsetWidth + boxBoderWidth)
+            return;
+        var e = window.event || e;
+        var lineLeft = dragging.startX + (e.clientX - dragging.mouseX);
+        var disX = (e || event).clientX;
+        var iT = line.offsetLeft + ((e || event).clientX - disX);
+        var maxT = box.clientHeight - line.offsetWidth;
+        line.style.margin = 0;
+        iT < 0 && (iT = 0);
+        iT > maxT && (iT = maxT);
+        line.style.left = lineLeft + "px";
+        right.style.width = box.offsetWidth - line.offsetWidth - line.offsetLeft + "px";
+        right.style.left = lineLeft + line.offsetWidth + "px";
+        left.style.width = line.offsetLeft + "px";
+    }, true);
+};
+window.onload = function() {
+    draggable();
+}
+</script>
