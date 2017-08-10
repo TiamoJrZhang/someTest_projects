@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>File UpLoad</title>
+</head>
+
+<body>
+    <form id="formData" method="post" action=''>
+        <p>
+            <label for="">邮箱</label>
+            <input type="text" name="account" />
+        </p>
+        <p>
+            <label for="">密码</label>
+            <input type="password" name="password" />
+        </p>
+        <input type="submit">
+    </form>
+</body>
+
+</html>
+<script>
+document.querySelector("#formData").addEventListener("submit", function(event) {
+    var myFormData = new FormData(this);
+    var xhr = new XMLHttpRequest();
+    xhr.open(this.method, this.action);
+    xhr.onload = function() {
+        eleResult.style.display = "block";
+        if (xhr.status == 200 && xhr.responseText) {
+            eleResult.style.color = "green";
+            eleResult.innerHTML = '欢迎你，' + xhr.responseText;
+            this.reset();
+        } else {
+            eleResult.style.color = "#cd0000";
+            eleResult.innerHTML = '啊，怎么回事？膝盖居然中了一箭……';
+        }
+    }.bind(this);
+    xhr.send(myFormData);
+    // 阻止默认的表单提交
+    // event.preventDefault();
+}, false);
+</script>

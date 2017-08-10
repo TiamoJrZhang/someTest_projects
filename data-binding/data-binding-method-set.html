@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>data-binding</title>
+</head>
+
+<body>
+    <input q-value="value" type="text" id="input">
+    <div q-text="value" id="el"></div>
+    <script>
+    let input = document.getElementById('input');
+    let el = document.getElementById('el');
+
+    let elems = [input, el];
+    /**
+     * viewModel
+     */
+    let data = {
+        value: 'hello'
+    };
+    const command = {
+        text: function(str) {
+            this.innerHTML = str;
+        },
+
+        value: function(str) {
+            this.setAttribute('value', str);
+        }
+    };
+
+    let scan = function() {
+        for (let i = 0, len = elems.length; i < len; i++) {
+            let elem = elems[i];
+            for (let j = 0, attrLen = elem.attributes.length; j < attrLen; j++) {
+                let attr = elem.attributes[j];
+                if (attr.nodeName.indexOf('q-') >= 0) {
+                    command[attr.nodeName.slice(2)].call(elem, data[attr.nodeValue]);
+                }
+            }
+        }
+    };
+
+    elems[0].addEventListener('keyup', function(e) {
+        mSet('value', e.target.value);
+    }, false);
+
+    scan();
+
+    function mSet(key, value) {
+        data[key] = value;
+        scan();
+    };
+
+    mSet('value', 'helloWorld');
+
+    </script>
+</body>
+
+</html>
