@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>revealDiv</title>
+    <script src="jquery-3.2.1.js"></script>
+</head>
+<style>
+body {
+	margin: 0;
+	padding: 0; 
+}
+
+#outer {
+    width: 80%;
+    height: 500px;
+    margin: 0 auto;
+    border: 2px solid #ccc;
+    position: relative;
+}
+
+#outer .block {
+    width: 50px;
+    height: 20px;
+    display: block;
+    padding: 5px;
+    background-color: #0769AD;
+    color: #fff;
+    text-align: center;
+    line-height: 20px;
+    cursor: pointer;
+}
+
+#outer .floatDiv {
+    width: 100px;
+    height: 90px;
+    border: 1px solid #0769AD;
+    border-radius: 5px;
+    position: absolute;
+    z-index: 222;
+    background-color: #fff;
+    display: none;
+/*    display: flex;
+    flex-direction: column;*/
+    color: #fff;
+}
+
+#outer .top {
+    /*flex: 1;*/
+    height: 30px;
+    background-color: #888888;
+}
+
+#outer .center {
+    /*flex: 1;*/
+    height: 30px;
+    background-color: #00AAAA;
+}
+
+#outer .bottom {
+    /*flex: 1;*/
+    height: 30px;
+    background-color: #DDAA00;
+}
+</style>
+
+<body>
+    <div id="outer">
+        <div class="floatDiv">
+            <div class="top">
+                头部
+            </div>
+            <div class="center">
+                中部
+            </div>
+            <div class="bottom">
+                尾部
+            </div>
+        </div>
+    </div>
+    <script>
+    var createEle = `<a class="block">方块</a>`;
+    for (var i = 0; i < 6; i++) {
+        $('#outer').append(createEle);
+        var marginTop = i * 10 + 'px';
+        var marginLeft = Math.random() * i * 80 + 'px';
+        $('.block').eq(i).attr('id', 'block' + i);
+        $('.block').eq(i).css({
+            'margin-top': marginTop,
+            'margin-left': marginLeft
+        });
+    };
+
+    $('.block').mouseenter(function(e) {
+    	/**
+    	 * jquery中的e直接封装有clientX, clientY属性;
+    	 */
+    	var offsetLeft = $('#outer').offset().left;
+    	var outerWidth = $('#outer').width();
+    	var floatWidth = $('.floatDiv').width();
+    	console.log(e.target.id);
+    	console.log({
+    		x: e.clientX - offsetLeft,
+    		y: e.clientY
+    	})
+    	var cssPosition = {
+    		top: e.clientY,
+    		left: e.clientX - offsetLeft
+    	};
+    	if (floatWidth > outerWidth - cssPosition.left) {
+    		cssPosition.left = cssPosition.left - floatWidth;
+    	};
+    	$('.floatDiv').css(cssPosition);
+        $('.floatDiv').show(200);
+    });
+
+    $('.block').mouseleave(function() {
+        $('.floatDiv').hide(200);
+    });
+    
+    // function returnXY(param1, param2, e) {
+    // 	var scrollName = 'scroll' + param1;
+    // 	var scrollName = document.documentElement['scroll' + param2] ||
+    // 				  document.body['scroll' + param2];
+    // 	var position = e['page' + param1] || e['client' + param2] + scrollName;
+    // 	return position;
+    // };
+
+    // function getMousePosition(event) {
+    // 	var e = event || window.event;
+    // 	var x = returnXY('X', 'Left', e);
+    // 	var y = returnXY('Y', 'Top', e);
+    // 	return {
+    // 		x: x,
+    // 		y: y
+    // 	}
+    // };
+    </script>
+</body>
+
+</html>
