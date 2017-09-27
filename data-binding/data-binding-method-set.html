@@ -3,58 +3,297 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>data-binding</title>
+    <title>data-binding-method-set</title>
 </head>
 
 <body>
     <input q-value="value" type="text" id="input">
     <div q-text="value" id="el"></div>
     <script>
-    let input = document.getElementById('input');
-    let el = document.getElementById('el');
+        var elems = [document.getElementById('el'), document.getElementById('input')];
 
-    let elems = [input, el];
-    /**
-     * viewModel
-     */
-    let data = {
-        value: 'hello'
-    };
-    const command = {
-        text: function(str) {
-            this.innerHTML = str;
-        },
+        var data = {
+            value: 'hello!'
+        };
 
-        value: function(str) {
-            this.setAttribute('value', str);
-        }
-    };
+        var command = {
+            text: function(str) {
+                this.innerHTML = str;
+            },
+            value: function(str) {
+                this.setAttribute('value', str);
+            }
+        };
 
-    let scan = function() {
-        for (let i = 0, len = elems.length; i < len; i++) {
-            let elem = elems[i];
-            for (let j = 0, attrLen = elem.attributes.length; j < attrLen; j++) {
-                let attr = elem.attributes[j];
-                if (attr.nodeName.indexOf('q-') >= 0) {
-                    command[attr.nodeName.slice(2)].call(elem, data[attr.nodeValue]);
+        var scan = function() {
+            /**
+             * 扫描带指令的节点属性
+             */
+            for (var i = 0, len = elems.length; i < len; i++) {
+                var elem = elems[i];
+                elem.command = [];
+                for (var j = 0, len1 = elem.attributes.length; j < len1; j++) {
+                    var attr = elem.attributes[j];
+                    if (attr.nodeName.indexOf('q-') >= 0) {
+                        /**
+                         * 调用属性指令，这里可以使用数据改变检测
+                         */
+                        command[attr.nodeName.slice(2)].call(elem, data[attr.nodeValue]);
+                        elem.command.push(attr.nodeName.slice(2));
+                    }
                 }
             }
         }
-    };
 
-    elems[0].addEventListener('keyup', function(e) {
-        mSet('value', e.target.value);
-    }, false);
+        /**
+         * 设置数据后扫描
+         */
+        function mvSet(key, value) {
+            data[key] = value;
+            scan();
+        }
+        /**
+         * 数据绑定监听
+         */
+        elems[1].addEventListener('keyup', function(e) {
+            mvSet('value', e.target.value);
+        }, false);
 
-    scan();
-
-    function mSet(key, value) {
-        data[key] = value;
         scan();
-    };
 
-    mSet('value', 'helloWorld');
+        /**
+         * 改变数据更新视图
+         */
+        setTimeout(function() {
+            mvSet('value', 'fuck');
+        }, 1000)
+    </script>
+</body>
 
+</html>
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>data-binding-drity-check</title>
+</head>
+
+<body>
+    <input q-event="value" ng-bind="value" type="text" id="input">
+    <div q-event="text" ng-bind="value" id="el"></div>
+    <script>
+        var elems = [document.getElementById('el'), document.getElementById('input')];
+
+        var data = {
+            value: 'hello!'
+        };
+
+        var command = {
+            text: function(str) {
+                this.innerHTML = str;
+            },
+            value: function(str) {
+                this.setAttribute('value', str);
+            }
+        };
+
+        var scan = function(elems) {
+            /**
+             * 扫描带指令的节点属性
+             */
+            for (var i = 0, len = elems.length; i < len; i++) {
+                var elem = elems[i];
+                elem.command = {};
+                for (var j = 0, len1 = elem.attributes.length; j < len1; j++) {
+                    var attr = elem.attributes[j];
+                    if (attr.nodeName.indexOf('q-event') >= 0) {
+                        /**
+                         * 调用属性指令
+                         */
+                        var dataKey = elem.getAttribute('ng-bind') || undefined;
+                        /**
+                         * 进行数据初始化
+                         */
+                        command[attr.nodeValue].call(elem, data[dataKey]);
+                        elem.command[attr.nodeValue] = data[dataKey];
+                    }
+                }
+            }
+        }
+
+        /**
+         * 脏循环检测
+         * @param  {[type]} elems [description]
+         * @return {[type]}       [description]
+         */
+        var digest = function(elems) {
+            /**
+             * 扫描带指令的节点属性
+             */
+            for (var i = 0, len = elems.length; i < len; i++) {
+                var elem = elems[i];
+                for (var j = 0, len1 = elem.attributes.length; j < len1; j++) {
+                    var attr = elem.attributes[j];
+                    if (attr.nodeName.indexOf('q-event') >= 0) {
+                        /**
+                         * 调用属性指令
+                         */
+                        var dataKey = elem.getAttribute('ng-bind') || undefined;
+
+                        /**
+                         * 进行脏数据检测，如果数据改变，则重新执行指令，否则跳过
+                         */
+                        if (elem.command[attr.nodeValue] !== data[dataKey]) {
+
+                            command[attr.nodeValue].call(elem, data[dataKey]);
+                            elem.command[attr.nodeValue] = data[dataKey];
+                        }
+                    }
+                }
+            }
+        }
+
+        /**
+         * 初始化数据
+         */
+        scan(elems);
+
+        /**
+         * 可以理解为做数据劫持监听
+         */
+        function $digest(value) {
+            var list = document.querySelectorAll('[ng-bind=' + value + ']');
+            digest(list);
+        }
+
+        /**
+         * 输入框数据绑定监听
+         */
+        if (document.addEventListener) {
+            elems[1].addEventListener('keyup', function(e) {
+                data.value = e.target.value;
+                $digest(e.target.getAttribute('ng-bind'));
+            }, false);
+        } else {
+            elems[1].attachEvent('onkeyup', function(e) {
+                data.value = e.target.value;
+                $digest(e.target.getAttribute('ng-bind'));
+            }, false);
+        }
+
+        setTimeout(function() {
+            data.value = 'fuck';
+            /**
+             * 这里问啥还要执行$digest这里关键的是需要手动调用$digest方法来启动脏检测
+             */
+            $digest('value');
+        }, 2000)
+    </script>
+</body>
+
+</html>
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>data-binding-hijacking</title>
+</head>
+
+<body>
+    <input q-value="value" type="text" id="input">
+    <div q-text="value" id="el"></div>
+    <script>
+        var elems = [document.getElementById('el'), document.getElementById('input')];
+
+        var data = {
+            value: 'hello!'
+        };
+
+        var command = {
+            text: function(str) {
+                this.innerHTML = str;
+            },
+            value: function(str) {
+                this.setAttribute('value', str);
+            }
+        };
+
+        var scan = function() {
+            /**
+             * 扫描带指令的节点属性
+             */
+            for (var i = 0, len = elems.length; i < len; i++) {
+                var elem = elems[i];
+                elem.command = [];
+                for (var j = 0, len1 = elem.attributes.length; j < len1; j++) {
+                    var attr = elem.attributes[j];
+                    if (attr.nodeName.indexOf('q-') >= 0) {
+                        /**
+                         * 调用属性指令
+                         */
+                        command[attr.nodeName.slice(2)].call(elem, data[attr.nodeValue]);
+                        elem.command.push(attr.nodeName.slice(2));
+
+                    }
+                }
+            }
+        }
+
+        var bValue;
+        /**
+         * 定义属性设置劫持
+         */
+        var defineGetAndSet = function(obj, propName) {
+                try {
+                    Object.defineProperty(obj, propName, {
+
+                        get: function() {
+                            return bValue;
+                        },
+                        set: function(newValue) {
+                            bValue = newValue;
+                            scan();
+                        },
+
+                        enumerable: true,
+                        configurable: true
+                    });
+                } catch (error) {
+                    console.log("browser not supported.");
+                }
+            }
+            /**
+             * 初始化数据
+             */
+        scan();
+
+        /**
+         * 可以理解为做数据劫持监听
+         */
+        defineGetAndSet(data, 'value');
+
+        /**
+         * 数据绑定监听
+         */
+        if (document.addEventListener) {
+            elems[1].addEventListener('keyup', function(e) {
+                data.value = e.target.value;
+            }, false);
+        } else {
+            elems[1].attachEvent('onkeyup', function(e) {
+                data.value = e.target.value;
+            }, false);
+        }
+
+        setTimeout(function() {
+            data.value = 'fuck';
+        }, 2000)
     </script>
 </body>
 
